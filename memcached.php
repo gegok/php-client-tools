@@ -30,16 +30,21 @@ $mc->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
 $mc->setOption(\Memcached::OPT_DISTRIBUTION, \Memcached::DISTRIBUTION_CONSISTENT);
 $mc->addServer($host, $port);
 
-if (strpos($key, '*') !== false) {
-    $allKeys = $mc->getAllKeys();
-    $keyPattern = '/^' . str_replace('*', '.*', $key) . '$/i';
-    foreach ($allKeys as $k) {
-        if (preg_match($keyPattern, $k)) {
-            $keys[] = $k;
-        }
-    }
-} elseif ($key) {
+$keys = [];
+if ($key && strpos($key, '*') === false) {
     $keys[] = $key;
+} else {
+    $allKeys = $mc->getAllKeys();
+    if (strpos($key, '*') !== false) {
+        $keyPattern = '/^' . str_replace('*', '.*', $key) . '$/i';
+        foreach ($allKeys as $k) {
+            if (preg_match($keyPattern, $k)) {
+                $keys[] = $k;
+            }
+        }
+    } elseif ($listKeys) {
+        $keys = $allKeys;
+    }
 }
 
 foreach ($keys as $key) {
