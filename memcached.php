@@ -8,6 +8,7 @@ array_shift($argv);
 $host = 'localhost';
 $port = 11211;
 $listKeys = false;
+$delete = false;
 $key = '';
 foreach ($argv as $arg) {
     if (trim($arg)) {
@@ -18,6 +19,8 @@ foreach ($argv as $arg) {
             $port = (int) trim(substr($arg, 7));
         } elseif ($arg == '--list') {
             $listKeys = true;
+        } elseif ($arg == '--delete') {
+            $delete = true;
         // key
         } else {
             $key = trim($arg);
@@ -29,6 +32,10 @@ $mc = new Memcached();
 $mc->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
 $mc->setOption(\Memcached::OPT_DISTRIBUTION, \Memcached::DISTRIBUTION_CONSISTENT);
 $mc->addServer($host, $port);
+
+if ($delete && $key) {
+    $mc->delete($key);
+} else {
 
 $keys = [];
 if ($key && strpos($key, '*') === false) {
@@ -58,4 +65,6 @@ foreach ($keys as $key) {
             echo $key . ' = ' . $value . PHP_EOL;
         }
     }
+}
+
 }
